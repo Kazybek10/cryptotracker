@@ -1,33 +1,37 @@
 // src/pages/CoinDetailPage.jsx
+// Не забываем импортировать хуки и штуки для роутинга
 import React, { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import axios from 'axios';
+import { useParams, Link } from 'react-router-dom'; // useParams нужен, чтобы взять ID монеты из адресной строки
+import axios from 'axios'; // axios для запросов к API
 
 const CoinDetailPage = () => {
-  const { id } = useParams();
-  const [coinData, setCoinData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const { id } = useParams(); // Получаем ID монеты из URL (например, если URL /coin/bitcoin, то id будет 'bitcoin')
+  const [coinData, setCoinData] = useState(null); // Состояние для хранения данных о конкретной монете
+  const [loading, setLoading] = useState(true); // Состояние для индикатора загрузки
+  const [error, setError] = useState(null); // Состояние для ошибок
 
+  // useEffect - чтобы загрузить данные о монете, когда страница открывается или ID меняется
   useEffect(() => {
     const fetchCoinDetails = async () => {
       try {
-        setLoading(true);
+        setLoading(true); // Начинаем загрузку
+        // Делаем запрос к CoinGecko API, используя ID монеты
         const response = await axios.get(`https://api.coingecko.com/api/v3/coins/${id}`);
-        setCoinData(response.data);
+        setCoinData(response.data); // Сохраняем полученные данные
       } catch (err) {
-        console.error(`Ошибка при загрузке данных для монеты ${id}:`, err);
-        setError(`Не удалось загрузить данные для монеты "${id}". Возможно, такой монеты нет или проблемы с API.`);
+        console.error(`Ой, ошибка при загрузке данных для монеты ${id}:`, err);
+        setError(`Не удалось загрузить данные для монеты "${id}". Может, такой монеты нет или API барахлит.`);
       } finally {
-        setLoading(false);
+        setLoading(false); // Загрузка закончилась
       }
     };
 
-    if (id) {
+    if (id) { // Загружаем данные только если ID монеты есть
       fetchCoinDetails();
     }
-  }, [id]);
+  }, [id]); // Зависимость: запускаемся, когда меняется ID в URL
 
+  // Если данные загружаются, показываем спиннер
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-900 text-white dark:bg-gray-950">
@@ -39,11 +43,12 @@ const CoinDetailPage = () => {
     );
   }
 
+  // Если произошла ошибка, показываем сообщение об ошибке
   if (error) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-red-900 text-white dark:bg-red-950">
         <div className="text-center p-6 rounded-lg shadow-lg bg-red-800 dark:bg-red-900">
-          <p className="text-2xl font-bold mb-4">Ошибка загрузки!</p>
+          <p className="text-2xl font-bold mb-4">Ой-ой, ошибка загрузки!</p>
           <p className="text-lg">{error}</p>
           <Link to="/" className="mt-6 inline-block px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg shadow-md transition duration-300 dark:bg-red-700 dark:hover:bg-red-800">
             Вернуться на главную
@@ -53,6 +58,7 @@ const CoinDetailPage = () => {
     );
   }
 
+  // Если данных нет после загрузки (например, ID был неправильный), показываем "не найдено"
   if (!coinData) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-900 text-white dark:bg-gray-950">
@@ -67,12 +73,17 @@ const CoinDetailPage = () => {
     );
   }
 
+  // Если все хорошо, показываем детали монеты
   return (
+    // Основной контейнер страницы. Градиентный фон, отступы, текст белый.
+    // dark:from-gray-950 dark:to-black - это стили для темной темы
     <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 text-white p-4 sm:p-6 lg:p-8 dark:from-gray-950 dark:to-black">
+      {/* Кнопка "назад" на главную */}
       <Link to="/" className="text-blue-400 hover:text-blue-300 flex items-center mb-6 text-lg dark:text-blue-300 dark:hover:text-blue-200">
         ← Вернуться на главную
       </Link>
 
+      {/* Основной блок с информацией о монете */}
       <div className="bg-gray-800 p-6 sm:p-8 rounded-xl shadow-lg border border-gray-700 max-w-4xl mx-auto dark:bg-gray-850 dark:border-gray-750">
         <div className="flex items-center mb-6">
           <img src={coinData.image.large} alt={coinData.name} className="w-16 h-16 sm:w-20 sm:h-20 rounded-full mr-4 shadow-md" />
@@ -82,6 +93,7 @@ const CoinDetailPage = () => {
           </div>
         </div>
 
+        {/* Сетка с основными метриками */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           <div className="bg-gray-700 p-4 rounded-lg shadow-inner dark:bg-gray-800">
             <p className="text-gray-300 text-sm mb-1">Текущая цена (USD):</p>
@@ -109,6 +121,7 @@ const CoinDetailPage = () => {
           </div>
         </div>
 
+        {/* Заглушка для графика. Тут потом можно будет вставить настоящий график! */}
         <div className="bg-gray-700 p-4 rounded-lg shadow-inner mb-8 dark:bg-gray-800">
           <h3 className="text-xl font-semibold mb-4 text-white dark:text-gray-100">График цены (заглушка)</h3>
           <div className="h-48 bg-gray-600 rounded-md flex items-center justify-center text-gray-400 dark:bg-gray-700">
@@ -116,17 +129,20 @@ const CoinDetailPage = () => {
           </div>
         </div>
 
+        {/* Описание монеты. Берем только часть, чтобы не было слишком много текста */}
         <div className="mb-8">
           <h3 className="text-xl font-semibold mb-4 text-white dark:text-gray-100">О монете</h3>
+          {/* dangerouslySetInnerHTML - это если в описании есть HTML-теги, чтобы они правильно отображались */}
           <div
             className="text-gray-300 leading-relaxed"
             dangerouslySetInnerHTML={{ __html: coinData.description.en.substring(0, 300) + '...' }}
           />
           <p className="text-sm text-gray-500 mt-2">
-            Больше информации на <a href={coinData.links.homepage[0]} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline dark:text-blue-300">официальном сайте</a>.
+            Больше инфы на <a href={coinData.links.homepage[0]} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline dark:text-blue-300">официальном сайте</a>.
           </p>
         </div>
 
+        {/* Дополнительная информация */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-gray-300">
           <div>
             <p><span className="font-semibold text-white dark:text-gray-100">Рейтинг CoinGecko:</span> #{coinData.coingecko_rank}</p>
@@ -138,6 +154,7 @@ const CoinDetailPage = () => {
         </div>
       </div>
 
+      {/* Футер с информацией об источнике данных */}
       <p className="text-center text-gray-500 text-sm mt-12">
         Данные предоставлены <a href="https://www.coingecko.com/" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline dark:text-blue-300">CoinGecko API</a>.
       </p>
